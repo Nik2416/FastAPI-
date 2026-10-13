@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel,Field,computed_field
 from fastapi.responses import JSONResponse
-from typing import Literal,Annotated
+from typing import Literal , Annotated
 import pickle
 import pandas as  pd
 
@@ -41,12 +41,12 @@ class userInput(BaseModel):
 
    @computed_field
    @property
-   def bmi(self):
+   def bmi(self)-> float:
       return self.weight/(self.height**2)
 
    @computed_field
    @property
-   def lifestyle_risk(self):
+   def lifestyle_risk(self)-> str:
       if self.smoker and self.bmi >30:
          return 'high'
       elif self.smoker or self.bmi <25:
@@ -56,7 +56,7 @@ class userInput(BaseModel):
 
    @computed_field
    @property
-   def age_group(self):
+   def age_group(self)-> str:
       if self.age<25:
          return 'young'
       elif  self.age<45:
@@ -67,7 +67,7 @@ class userInput(BaseModel):
 
    @computed_field
    @property
-   def city_tier(self):
+   def city_tier(self)-> int:
       if self.city in tier_1:
          return 1
       elif self.city in tier_2:
@@ -77,14 +77,16 @@ class userInput(BaseModel):
          
 @app.post('/predict')
 def predict(data:userInput):
-   input = pd.DataFrame([{
+
+   input_data = pd.DataFrame([{
       'bmi':data.bmi,
-      'age_group':data.age_group
+      'age_group':data.age_group,
       'lifestyle_risk':data.lifestyle_risk,
       'city_tier':data.city_tier,     
       'income_lpa':data.income_lpa,
-      'occupation':data.occupation  }])
+      'occupation':data.occupation 
+      }])
 
-   prediction =model.predict(input)[0]
+   prediction =model.predict(input_data)[0]
 
    return JSONResponse(status_code=200,content={'predicted_category':prediction})
